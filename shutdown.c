@@ -3,8 +3,8 @@ c
 #include <unistd.h>
 
 int main() {
-    printf("Shutting down...\n");
-    sleep(5); // Simulate a 5-second delay
-    system("shutdown -h now"); // Shutdown the computer immediately
+    printf("Shutting down the computer...\n");
+    sleep(10); // Simulate a 10-second shutdown
+    system("shutdown -h now"); // Execute the shutdown command
     return 0;
 }
