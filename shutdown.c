@@ -1,8 +1,10 @@
 c
 #include <stdio.h>
-#include <stdlib.h>
+#include <unistd.h>
 
 int main() {
-    system("shutdown -s");
+    printf("Shutting down...\n");
+    sleep(5); // Simulate a 5-second delay
+    system("shutdown -h now"); // Shutdown the computer immediately
     return 0;
 }
