@@ -1,67 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Data Save (iPhone Version)</title>
+  <title>Supabase Chat</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
+
 <body>
-    <h1>User Data Save</h1>
+  <h2>Login / Signup</h2>
 
-    <form id="userDataForm">
-        <label>Email:</label><br>
-        <input type="text" id="email"><br><br>
+  <input id="email" placeholder="Email"><br><br>
+  <input id="password" type="password" placeholder="Password"><br><br>
+  <input id="username" placeholder="Username"><br><br>
 
-        <label>Password:</label><br>
-        <input type="password" id="password"><br><br>
+  <button onclick="signup()">Sign Up</button>
+  <button onclick="login()">Login</button>
 
-        <button type="submit">Save Data</button>
-    </form>
+  <hr>
 
-    <br>
+  <h2>Chat</h2>
 
-    <button onclick="downloadData()">Download userdata.json</button>
+  <input id="message" placeholder="Message">
+  <button onclick="sendMessage()">Send</button>
 
-    <h2>Gespeicherte Daten:</h2>
-    <pre id="output"></pre>
+  <div id="chat"></div>
 
-    <script>
-        const form = document.getElementById('userDataForm');
-        const output = document.getElementById('output');
+<script>
+const supabaseUrl = "DEINE_PROJECT_URL";
+const supabaseKey = "DEIN_ANON_KEY";
 
-        function loadUsers() {
-            const users = JSON.parse(localStorage.getItem('users')) || [];
-            output.textContent = JSON.stringify(users, null, 2);
-        }
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+let currentUser = null;
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+/* ---------------- SIGN UP ---------------- */
+async function signup() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const username = document.getElementById("username").value;
 
-            const users = JSON.parse(localStorage.getItem('users')) || [];
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password
+  });
 
-            users.push({ email, password });
+  if (error) return alert(error.message);
 
-            localStorage.setItem('users', JSON.stringify(users));
+  currentUser = data.user;
 
-            alert('Gespeichert (nur auf deinem Gerät)');
-            loadUsers();
-        });
+  await supabase.from("profiles").insert({
+    id: currentUser.id,
+    email,
+    username,
+    is_admin: false,
+    blocked: false
+  });
 
-        function downloadData() {
-            const data = localStorage.getItem('users') || "[]";
-            const blob = new Blob([data], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
+  alert("Account erstellt!");
+}
 
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "userdata.json";
-            a.click();
-        }
+/* ---------------- LOGIN ---------------- */
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-        loadUsers();
-    </script>
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) return alert(error.message);
+
+  currentUser = data.user;
+
+  alert("Eingeloggt!");
+  loadMessages();
+}
+
+/* ---------------- SEND MESSAGE ---------------- */
+async function sendMessage() {
+  const message = document.getElementById("message").value;
+
+  await supabase.from("messages").insert({
+    sender: currentUser.id,
+    content: message
+  });
+
+  document.getElementById("message").value = "";
+  loadMessages();
+}
+
+/* ---------------- LOAD CHAT ---------------- */
+async function loadMessages() {
+  const { data } = await supabase
+    .from("messages")
+    .select("*")
+    .order("id", { ascending: true });
+
+  document.getElementById("chat").innerHTML =
+    data.map(m => `<p>${m.content}</p>`).join("");
+}
+
+setInterval(loadMessages, 2000);
+
+</script>
+
 </body>
 </html>
