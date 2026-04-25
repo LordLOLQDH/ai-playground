@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data Save (GitHub Version)</title>
+</head>
+<body>
+    <h1>User Data Save (Test)</h1>
+
+    <form id="userDataForm">
+        <label>Email:</label><br>
+        <input type="text" id="email"><br><br>
+
+        <label>Password:</label><br>
+        <input type="password" id="password"><br><br>
+
+        <button type="submit">Save Data</button>
+    </form>
+
+    <h2>Saved Users:</h2>
+    <pre id="output"></pre>
+
+    <script>
+        const form = document.getElementById('userDataForm');
+        const output = document.getElementById('output');
+
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            output.textContent = JSON.stringify(users, null, 2);
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+
+            users.push({ email, password });
+
+            localStorage.setItem('users', JSON.stringify(users));
+
+            alert('Saved (locally in your browser)');
+            loadUsers();
+        });
+
+        loadUsers();
+    </script>
+</body>
+</html>
